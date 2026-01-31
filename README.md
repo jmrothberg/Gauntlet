@@ -22,6 +22,33 @@ This project recreates the legendary dungeon-crawling action of Gauntlet with:
 ### Web Version (Easiest)
 Simply open `Gauntlet_1FILE_Oct_29_25.html` in any modern web browser. No installation required!
 
+### Play Online via GitHub (Using raw.githack)
+
+You can play the game directly in your browser without downloading anything using [raw.githack.com](https://raw.githack.com/):
+
+**Play Now:** [https://raw.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html](https://raw.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html)
+
+#### How raw.githack Works
+
+GitHub serves raw files with `text/plain` content-type, which prevents HTML files from rendering as web pages. [raw.githack.com](https://raw.githack.com/) proxies GitHub files with proper content-type headers, allowing HTML/JS/CSS to run directly.
+
+**To create your own raw.githack link:**
+1. Go to [https://raw.githack.com/](https://raw.githack.com/)
+2. Paste the GitHub URL of any HTML file from this repo
+3. Use the generated "Production" URL for stable hosting, or "Development" for testing
+
+**URL Format:**
+```
+# GitHub raw URL:
+https://raw.githubusercontent.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html
+
+# raw.githack production URL:
+https://raw.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html
+
+# raw.githack development URL (updates faster, use for testing):
+https://rawcdn.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html
+```
+
 ### Desktop Version (Python)
 ```bash
 # Install dependencies
