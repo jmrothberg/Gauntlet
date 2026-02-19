@@ -63,78 +63,43 @@
             margin: 0 auto;
         }
 
-        /* Touch Controls */
+        /* Touch Controls - button bar below the canvas */
         #touchControls {
             display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
+            width: 100%;
             pointer-events: none;
-            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         body.mobile-mode #touchControls {
             display: block;
         }
         #touchControls .touch-group {
             display: none;
-            position: absolute;
-            bottom: 10px;
             pointer-events: auto;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            flex-wrap: wrap;
         }
         #touchControls .touch-group.active {
             display: flex;
         }
 
-        /* D-pad (left side) */
-        .dpad-container {
-            left: 10px;
-            width: 160px;
-            height: 160px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            position: relative !important;
-        }
-        .dpad-container .touch-btn {
-            position: absolute;
-        }
-        .dpad-container .touch-btn.dpad-up    { top: 0; left: 52px; }
-        .dpad-container .touch-btn.dpad-down  { bottom: 0; left: 52px; }
-        .dpad-container .touch-btn.dpad-left  { top: 52px; left: 0; }
-        .dpad-container .touch-btn.dpad-right { top: 52px; right: 0; }
-
-        /* Action buttons (right side) */
-        .action-container {
-            right: 10px;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 8px;
-        }
         .action-row {
             display: flex;
-            gap: 8px;
-        }
-
-        /* Menu buttons (centered) */
-        .menu-container {
-            left: 50%;
-            transform: translateX(-50%);
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            gap: 6px;
         }
         .menu-row {
             display: flex;
-            gap: 10px;
+            gap: 6px;
         }
 
         /* Touch button base */
         .touch-btn {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
+            height: 44px;
+            min-width: 44px;
+            padding: 0 10px;
+            border-radius: 8px;
             background: rgba(255, 255, 255, 0.15);
             border: 2px solid rgba(255, 255, 255, 0.4);
             color: #fff;
@@ -158,8 +123,7 @@
         .touch-btn.btn-attack {
             background: rgba(255, 60, 60, 0.25);
             border-color: rgba(255, 60, 60, 0.6);
-            width: 64px;
-            height: 64px;
+            min-width: 54px;
             font-size: 13px;
         }
         .touch-btn.btn-action {
@@ -169,13 +133,13 @@
         .touch-btn.btn-confirm {
             background: rgba(60, 200, 60, 0.25);
             border-color: rgba(60, 200, 60, 0.6);
-            width: 80px;
-            border-radius: 12px;
-            font-size: 14px;
+            min-width: 64px;
+            font-size: 13px;
         }
         .touch-btn.btn-small {
-            width: 44px;
-            height: 44px;
+            height: 36px;
+            min-width: 36px;
+            padding: 0 6px;
             font-size: 10px;
         }
 
@@ -184,6 +148,9 @@
             background: #000 !important;
             overflow: hidden;
             touch-action: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         body.mobile-mode #gameCanvas {
             touch-action: none;
@@ -193,7 +160,7 @@
         }
         body.mobile-mode #gameContainer {
             display: block !important;
-            transform-origin: top center;
+            transform-origin: top left;
         }
     </style>
 </head>
@@ -223,99 +190,76 @@
         <div id="ui"></div>
     </div>
 
-    <!-- Touch Controls (mobile only) -->
+    <!-- Touch Controls (mobile only) - horizontal bar below canvas -->
     <div id="touchControls">
         <!-- MENU state buttons -->
-        <div class="touch-group menu-container" id="touchMenu">
+        <div class="touch-group" id="touchMenu">
             <button class="touch-btn btn-confirm" data-key="Enter">START</button>
-            <div class="menu-row">
-                <button class="touch-btn btn-action" data-key="KeyL">LOAD</button>
-                <button class="touch-btn btn-action" data-key="KeyS">LEVELS</button>
-            </div>
+            <button class="touch-btn btn-action" data-key="KeyL">LOAD</button>
+            <button class="touch-btn btn-action" data-key="KeyS">LEVELS</button>
         </div>
 
         <!-- DIFFICULTY_SELECT buttons -->
-        <div class="touch-group menu-container" id="touchDifficulty">
-            <div class="menu-row">
-                <button class="touch-btn" data-key="ArrowLeft" data-hold="true">&larr;</button>
-                <button class="touch-btn btn-confirm" data-key="Enter">SELECT</button>
-                <button class="touch-btn" data-key="ArrowRight" data-hold="true">&rarr;</button>
-            </div>
+        <div class="touch-group" id="touchDifficulty">
+            <button class="touch-btn" data-key="ArrowLeft">&larr;</button>
+            <button class="touch-btn btn-confirm" data-key="Enter">SELECT</button>
+            <button class="touch-btn" data-key="ArrowRight">&rarr;</button>
         </div>
 
         <!-- CHARACTER_SELECT buttons -->
-        <div class="touch-group menu-container" id="touchCharacter">
-            <button class="touch-btn" data-key="ArrowUp" data-hold="true">&uarr;</button>
+        <div class="touch-group" id="touchCharacter">
+            <button class="touch-btn" data-key="ArrowUp">&uarr;</button>
             <button class="touch-btn btn-confirm" data-key="Enter">SELECT</button>
-            <button class="touch-btn" data-key="ArrowDown" data-hold="true">&darr;</button>
+            <button class="touch-btn" data-key="ArrowDown">&darr;</button>
         </div>
 
-        <!-- PLAYING state buttons -->
-        <div class="touch-group dpad-container" id="touchDpad">
-            <button class="touch-btn dpad-up" data-key="ArrowUp" data-hold="true">&uarr;</button>
-            <button class="touch-btn dpad-down" data-key="ArrowDown" data-hold="true">&darr;</button>
-            <button class="touch-btn dpad-left" data-key="ArrowLeft" data-hold="true">&larr;</button>
-            <button class="touch-btn dpad-right" data-key="ArrowRight" data-hold="true">&rarr;</button>
-        </div>
-        <div class="touch-group action-container" id="touchAction">
-            <div class="action-row">
-                <button class="touch-btn btn-action" data-key="KeyD">DOOR</button>
-                <button class="touch-btn btn-attack" data-key="Space">ATK</button>
-            </div>
-            <div class="action-row">
-                <button class="touch-btn btn-action" data-key="KeyT">SHOP</button>
-                <button class="touch-btn btn-action" data-key="KeyI">INV</button>
-            </div>
-            <div class="action-row">
-                <button class="touch-btn btn-small" data-key="KeyP">PAUSE</button>
-                <button class="touch-btn btn-small" data-key="KeyH">HELP</button>
-                <button class="touch-btn btn-small" data-key="KeyM">MON</button>
-            </div>
+        <!-- PLAYING state buttons - single row, swipe on canvas for movement -->
+        <div class="touch-group" id="touchAction">
+            <button class="touch-btn btn-attack" data-key="Space">ATK</button>
+            <button class="touch-btn btn-action" data-key="KeyD">DOOR</button>
+            <button class="touch-btn btn-action" data-key="KeyT">SHOP</button>
+            <button class="touch-btn btn-action" data-key="KeyI">INV</button>
+            <button class="touch-btn btn-small" data-key="KeyP">PAUSE</button>
+            <button class="touch-btn btn-small" data-key="KeyH">HELP</button>
         </div>
 
         <!-- SHOP state buttons -->
-        <div class="touch-group menu-container" id="touchShop">
-            <button class="touch-btn" data-key="ArrowUp" data-hold="true">&uarr;</button>
+        <div class="touch-group" id="touchShop">
+            <button class="touch-btn" data-key="ArrowUp">&uarr;</button>
             <button class="touch-btn btn-confirm" data-key="Enter">BUY</button>
-            <button class="touch-btn" data-key="ArrowDown" data-hold="true">&darr;</button>
+            <button class="touch-btn" data-key="ArrowDown">&darr;</button>
             <button class="touch-btn btn-action" data-key="Escape">EXIT</button>
         </div>
 
         <!-- INVENTORY state buttons -->
-        <div class="touch-group menu-container" id="touchInventory">
-            <div class="menu-row">
-                <button class="touch-btn" data-key="ArrowLeft" data-hold="true">&larr;</button>
-                <button class="touch-btn" data-key="ArrowRight" data-hold="true">&rarr;</button>
-            </div>
-            <div class="menu-row">
-                <button class="touch-btn btn-confirm" data-key="Enter">USE</button>
-                <button class="touch-btn btn-action" data-key="KeyD">DROP</button>
-            </div>
+        <div class="touch-group" id="touchInventory">
+            <button class="touch-btn" data-key="ArrowLeft">&larr;</button>
+            <button class="touch-btn" data-key="ArrowRight">&rarr;</button>
+            <button class="touch-btn btn-confirm" data-key="Enter">USE</button>
+            <button class="touch-btn btn-action" data-key="KeyD">DROP</button>
             <button class="touch-btn btn-action" data-key="Escape">CLOSE</button>
         </div>
 
         <!-- PAUSED state buttons -->
-        <div class="touch-group menu-container" id="touchPaused">
+        <div class="touch-group" id="touchPaused">
             <button class="touch-btn btn-confirm" data-key="KeyP">RESUME</button>
         </div>
 
         <!-- HELP / MONSTER_INFO state buttons -->
-        <div class="touch-group menu-container" id="touchHelp">
+        <div class="touch-group" id="touchHelp">
             <button class="touch-btn btn-confirm" data-key="Escape">BACK</button>
         </div>
 
         <!-- GAME_OVER state buttons -->
-        <div class="touch-group menu-container" id="touchGameOver">
+        <div class="touch-group" id="touchGameOver">
             <button class="touch-btn btn-confirm" data-key="KeyR">RESTART</button>
         </div>
 
         <!-- LEVEL_SELECT state buttons -->
-        <div class="touch-group menu-container" id="touchLevelSelect">
-            <div class="menu-row">
-                <button class="touch-btn" data-key="ArrowLeft" data-hold="true">&larr;</button>
-                <button class="touch-btn btn-confirm" data-key="Enter">START</button>
-                <button class="touch-btn" data-key="ArrowRight" data-hold="true">&rarr;</button>
-            </div>
+        <div class="touch-group" id="touchLevelSelect">
+            <button class="touch-btn" data-key="ArrowLeft">&larr;</button>
+            <button class="touch-btn btn-confirm" data-key="Enter">START</button>
+            <button class="touch-btn" data-key="ArrowRight">&rarr;</button>
             <button class="touch-btn btn-action" data-key="Escape">BACK</button>
         </div>
     </div>
@@ -689,17 +633,31 @@ const embeddedSprites = {
             }
         }
 
-        // Scale canvas container to fit mobile viewport
+        // Scale canvas container to fit mobile viewport, with button bar below
+        var BUTTON_BAR_HEIGHT = 52;
         function scaleCanvas() {
             if (!isMobile) return;
-            const container = document.getElementById('gameContainer');
-            const scaleX = window.innerWidth / SCREEN_WIDTH;
-            const scaleY = window.innerHeight / SCREEN_HEIGHT;
-            const scale = Math.min(scaleX, scaleY);
+            var container = document.getElementById('gameContainer');
+            var controls = document.getElementById('touchControls');
+            var availH = window.innerHeight - BUTTON_BAR_HEIGHT;
+            var scaleX = window.innerWidth / SCREEN_WIDTH;
+            var scaleY = availH / SCREEN_HEIGHT;
+            var scale = Math.min(scaleX, scaleY);
+            var scaledW = SCREEN_WIDTH * scale;
+            var scaledH = SCREEN_HEIGHT * scale;
+            var leftOffset = Math.max(0, (window.innerWidth - scaledW) / 2);
             container.style.transform = 'scale(' + scale + ')';
-            container.style.transformOrigin = 'top center';
-            const topOffset = Math.max(0, (window.innerHeight - SCREEN_HEIGHT * scale) / 2);
-            container.style.marginTop = topOffset + 'px';
+            container.style.transformOrigin = 'top left';
+            container.style.position = 'absolute';
+            container.style.top = '0px';
+            container.style.left = leftOffset + 'px';
+            // Position button bar right below scaled canvas
+            if (controls) {
+                controls.style.position = 'absolute';
+                controls.style.top = scaledH + 'px';
+                controls.style.left = '0px';
+                controls.style.width = '100%';
+            }
         }
 
         // Load sprites from embedded data
@@ -903,11 +861,11 @@ const embeddedSprites = {
             event.preventDefault();
         }
 
-        // Touch control setup
+        // Touch control setup: buttons + swipe gesture for movement
         function setupTouchControls() {
+            // --- Button handlers ---
             document.querySelectorAll('[data-key]').forEach(function(btn) {
                 var keyCode = btn.dataset.key;
-                var isHold = btn.dataset.hold === 'true';
 
                 btn.addEventListener('touchstart', function(e) {
                     e.preventDefault();
@@ -944,31 +902,64 @@ const embeddedSprites = {
                     e.preventDefault();
                     e.stopPropagation();
                     btn.classList.remove('pressed');
-                    if (isHold) {
-                        delete keysPressed[keyCode];
-                        if (keyCode === 'Space') {
-                            delete keysPressed[' '];
-                        }
-                    }
                 }, {passive: false});
 
                 btn.addEventListener('touchcancel', function(e) {
                     btn.classList.remove('pressed');
-                    if (isHold) {
-                        delete keysPressed[keyCode];
-                        if (keyCode === 'Space') {
-                            delete keysPressed[' '];
-                        }
-                    }
                 });
             });
 
-            // Prevent default touch behaviors on the canvas
+            // --- Swipe/drag gesture on canvas for movement ---
             var canvasEl = document.getElementById('gameCanvas');
-            if (canvasEl) {
-                canvasEl.addEventListener('touchstart', function(e) { e.preventDefault(); }, {passive: false});
-                canvasEl.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
+            var touchStartX = 0;
+            var touchStartY = 0;
+            var dragActive = false;
+            var DRAG_THRESHOLD = 10; // px before drag activates
+
+            function clearMovementKeys() {
+                delete keysPressed['ArrowUp'];
+                delete keysPressed['ArrowDown'];
+                delete keysPressed['ArrowLeft'];
+                delete keysPressed['ArrowRight'];
             }
+
+            canvasEl.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                var t = e.touches[0];
+                touchStartX = t.clientX;
+                touchStartY = t.clientY;
+                dragActive = false;
+                clearMovementKeys();
+            }, {passive: false});
+
+            canvasEl.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                var t = e.touches[0];
+                var dx = t.clientX - touchStartX;
+                var dy = t.clientY - touchStartY;
+                var dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < DRAG_THRESHOLD) return;
+                dragActive = true;
+
+                // Determine primary direction from drag vector
+                clearMovementKeys();
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    keysPressed[dx > 0 ? 'ArrowRight' : 'ArrowLeft'] = true;
+                } else {
+                    keysPressed[dy > 0 ? 'ArrowDown' : 'ArrowUp'] = true;
+                }
+            }, {passive: false});
+
+            canvasEl.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                clearMovementKeys();
+                dragActive = false;
+            }, {passive: false});
+
+            canvasEl.addEventListener('touchcancel', function(e) {
+                clearMovementKeys();
+                dragActive = false;
+            });
         }
 
         // State-aware touch UI: show/hide button groups based on game state
@@ -978,12 +969,10 @@ const embeddedSprites = {
             var state = window.game.state;
             var invOpen = window.game.inventory_open;
 
-            // Map of group IDs to the states they should show for
             var groups = {
                 'touchMenu': state === GameState.MENU,
                 'touchDifficulty': state === GameState.DIFFICULTY_SELECT,
                 'touchCharacter': state === GameState.CHARACTER_SELECT,
-                'touchDpad': state === GameState.PLAYING && !invOpen,
                 'touchAction': state === GameState.PLAYING && !invOpen,
                 'touchShop': state === GameState.SHOP,
                 'touchInventory': (state === GameState.PLAYING && invOpen),
