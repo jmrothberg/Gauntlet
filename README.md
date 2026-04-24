@@ -19,35 +19,15 @@ This project recreates the legendary dungeon-crawling action of Gauntlet with:
 
 ## Quick Start
 
-### Web Version (Easiest)
-Simply open `Gauntlet_1FILE_Oct_29_25.html` in any modern web browser. No installation required!
+### Play Online With GitHub Pages
 
-### Play Online via GitHub (Using raw.githack)
+This repo uses GitHub Pages, GitHub's built-in static web hosting, to serve the HTML game files directly from the `main` branch.
 
-You can play the game directly in your browser without downloading anything using [raw.githack.com](https://raw.githack.com/):
+- [Gauntlet: Best Of](https://jmrothberg.github.io/Gauntlet/Gauntlet_bestof.html) - recommended version for browser, iPad, and iPhone. It combines the strongest mobile controls with cleaned-up bitmap sprites and current gameplay improvements.
+- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html) - older self-contained HTML build with the richer Oct 29 bitmap art and desktop-style flow.
+- [Gauntlet Lynx Edition](https://jmrothberg.github.io/Gauntlet/Gauntlet_Lynx_Edition.html) - alternate Lynx-style web build kept for comparison and experimentation.
 
-**Play Now:** [https://raw.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html](https://raw.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html)
-
-#### How raw.githack Works
-
-GitHub serves raw files with `text/plain` content-type, which prevents HTML files from rendering as web pages. [raw.githack.com](https://raw.githack.com/) proxies GitHub files with proper content-type headers, allowing HTML/JS/CSS to run directly.
-
-**To create your own raw.githack link:**
-1. Go to [https://raw.githack.com/](https://raw.githack.com/)
-2. Paste the GitHub URL of any HTML file from this repo
-3. Use the generated "Production" URL for stable hosting, or "Development" for testing
-
-**URL Format:**
-```
-# GitHub raw URL:
-https://raw.githubusercontent.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html
-
-# raw.githack production URL:
-https://raw.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html
-
-# raw.githack development URL (updates faster, use for testing):
-https://rawcdn.githack.com/jmrothberg/Gauntlet/main/Gauntlet_1FILE_Oct_29_25.html
-```
+You can also open any of those `.html` files locally in a modern browser. No installation is required for the web versions.
 
 ### Desktop Version (Python)
 ```bash
@@ -72,8 +52,9 @@ Gauntlet/
 │
 ├── GAME FILES
 │   ├── Gauntlet_Oct_27_25.py       # Main Python/Pygame game (desktop)
-│   ├── Gauntlet_1FILE_Oct_29_25.html   # Standalone HTML5 game (web)
-│   └── Gauntlet_Lynx_Edition.html  # Alternative web version
+│   ├── Gauntlet_bestof.html        # Recommended browser/iPad/iPhone version
+│   ├── Gauntlet_1FILE_Oct_29_25.html   # Oct 29 standalone HTML5 game
+│   └── Gauntlet_Lynx_Edition.html  # Alternate Lynx-style web version
 │
 ├── BUILD SYSTEM
 │   ├── build_game.py               # Builds HTML game with generated assets
@@ -105,7 +86,8 @@ Gauntlet/
 | File | Description |
 |------|-------------|
 | `Gauntlet_Oct_27_25.py` | Full-featured desktop game using Python/Pygame with procedural sound, save system, and complete gameplay |
-| `Gauntlet_1FILE_Oct_29_25.html` | Self-contained HTML5 game with all assets embedded - just open in browser |
+| `Gauntlet_bestof.html` | Recommended web version for browser/iPad/iPhone with mobile controls, cleaned-up sprites, and best-of gameplay updates |
+| `Gauntlet_1FILE_Oct_29_25.html` | Self-contained Oct 29 HTML5 game with all assets embedded and richer bitmap art |
 | `Gauntlet_Lynx_Edition.html` | Alternative HTML version with Lynx-style presentation |
 
 ### Build Tools
