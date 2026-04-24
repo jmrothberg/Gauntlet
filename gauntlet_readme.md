@@ -8,6 +8,12 @@ A complete recreation of the classic Atari Lynx game *Gauntlet: The Third Encoun
 
 This implementation faithfully recreates the original Gauntlet gameplay experience with modern code structure and cross-platform compatibility. Choose between running the game as a desktop application or directly in your web browser.
 
+## Play In Browser
+
+- [Gauntlet: Best Of](https://jmrothberg.github.io/Games/Gauntlet_bestof.html) - current best browser/iPad/iPhone version with mobile controls and cleaned-up sprites.
+- [Gauntlet: The Third Encounter](https://jmrothberg.github.io/Games/gauntlet_third_encounter.html) - compact single-file mobile/browser version.
+- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Games/Gauntlet_1FILE_Oct_29_25.html) - Oct 29 version with richer embedded bitmap sprites.
+
 ## Features
 
 ### Core Gameplay
@@ -67,9 +73,8 @@ No installation required - runs directly in modern web browsers with JavaScript 
 
 ### Web Version
 
-1. Open `Gauntlet_1FILE_Oct_29_25.html` in any modern web browser
-2. The game will load and run automatically
-3. Or build from source using the build scripts (see README.md)
+1. Open one of the playable browser links above, or open the matching `.html` file locally.
+2. For iPad/iPhone, use `Gauntlet_bestof.html` for the best touch controls.
 
 ## Controls
 

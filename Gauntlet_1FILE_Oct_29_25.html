@@ -609,6 +609,48 @@ const embeddedSprites = {
         let spritesLoaded = false;
         let totalSprites = 0;
         let loadedSprites = 0;
+        const TRANSPARENT_EDGE_SPRITES = new Set([
+            'item_apple', 'enemy_scorpion', 'slime',
+            'pirate', 'samurai', 'Wizard', 'enemy_skeleton', 'nerd'
+        ]);
+
+        function makeTransparentEdgeSprite(img) {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth || img.width;
+            c.height = img.naturalHeight || img.height;
+            const cx = c.getContext('2d');
+            cx.drawImage(img, 0, 0);
+            const image = cx.getImageData(0, 0, c.width, c.height);
+            const data = image.data;
+            const seen = new Uint8Array(c.width * c.height);
+            const stack = [];
+            const nearEdgeMat = (idx) => {
+                const p = idx * 4;
+                const a = data[p + 3];
+                if (a < 10) return true;
+                const r = data[p], g = data[p + 1], b = data[p + 2];
+                const spread = Math.max(r, g, b) - Math.min(r, g, b);
+                const avg = (r + g + b) / 3;
+                return spread < 28 && avg >= 70 && avg <= 255;
+            };
+            const push = (x, y) => {
+                if (x < 0 || y < 0 || x >= c.width || y >= c.height) return;
+                const idx = y * c.width + x;
+                if (seen[idx] || !nearEdgeMat(idx)) return;
+                seen[idx] = 1;
+                stack.push(idx);
+            };
+            for (let x = 0; x < c.width; x++) { push(x, 0); push(x, c.height - 1); }
+            for (let y = 0; y < c.height; y++) { push(0, y); push(c.width - 1, y); }
+            while (stack.length) {
+                const idx = stack.pop();
+                data[idx * 4 + 3] = 0;
+                const x = idx % c.width, y = (idx / c.width) | 0;
+                push(x + 1, y); push(x - 1, y); push(x, y + 1); push(x, y - 1);
+            }
+            cx.putImageData(image, 0, 0);
+            return c;
+        }
 
         // Initialize canvas
         function initCanvas() {
@@ -667,7 +709,9 @@ const embeddedSprites = {
             for (const [key, dataURI] of Object.entries(embeddedSprites)) {
                 const img = new Image();
                 img.onload = function() {
-                    sprites[key] = img;
+                    // Clean only connected white/gray edge mats so internal
+                    // sprite detail stays intact.
+                    sprites[key] = TRANSPARENT_EDGE_SPRITES.has(key) ? makeTransparentEdgeSprite(img) : img;
                     loadedSprites++;
                     if (loadedSprites >= totalSprites) {
                         spritesLoaded = true;
