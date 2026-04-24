@@ -24,8 +24,7 @@ This project recreates the legendary dungeon-crawling action of Gauntlet with:
 This repo uses GitHub Pages, GitHub's built-in static web hosting, to serve the HTML game files directly from the `main` branch.
 
 - [Gauntlet: Best Of](https://jmrothberg.github.io/Gauntlet/Gauntlet_bestof.html) - recommended version for browser, iPad, and iPhone. It combines the strongest mobile controls with cleaned-up bitmap sprites and current gameplay improvements.
-- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html) - older self-contained HTML build with the richer Oct 29 bitmap art and desktop-style flow.
-- [Gauntlet Lynx Edition](https://jmrothberg.github.io/Gauntlet/Gauntlet_Lynx_Edition.html) - alternate Lynx-style web build kept for comparison and experimentation.
+- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html) - newer of the two older HTML builds, with richer Oct 29 bitmap art plus mobile/touch updates.
 
 You can also open any of those `.html` files locally in a modern browser. No installation is required for the web versions.
 
@@ -53,8 +52,7 @@ Gauntlet/
 ├── GAME FILES
 │   ├── Gauntlet_Oct_27_25.py       # Main Python/Pygame game (desktop)
 │   ├── Gauntlet_bestof.html        # Recommended browser/iPad/iPhone version
-│   ├── Gauntlet_1FILE_Oct_29_25.html   # Oct 29 standalone HTML5 game
-│   └── Gauntlet_Lynx_Edition.html  # Alternate Lynx-style web version
+│   └── Gauntlet_1FILE_Oct_29_25.html   # Newer Oct 29 standalone HTML5 game
 │
 ├── BUILD SYSTEM
 │   ├── build_game.py               # Builds HTML game with generated assets
@@ -87,8 +85,7 @@ Gauntlet/
 |------|-------------|
 | `Gauntlet_Oct_27_25.py` | Full-featured desktop game using Python/Pygame with procedural sound, save system, and complete gameplay |
 | `Gauntlet_bestof.html` | Recommended web version for browser/iPad/iPhone with mobile controls, cleaned-up sprites, and best-of gameplay updates |
-| `Gauntlet_1FILE_Oct_29_25.html` | Self-contained Oct 29 HTML5 game with all assets embedded and richer bitmap art |
-| `Gauntlet_Lynx_Edition.html` | Alternative HTML version with Lynx-style presentation |
+| `Gauntlet_1FILE_Oct_29_25.html` | Self-contained Oct 29 HTML5 game with embedded bitmap art and mobile/touch updates; this supersedes `Gauntlet_Lynx_Edition.html` |
 
 ### Build Tools
 

@@ -13,8 +13,7 @@ This implementation faithfully recreates the original Gauntlet gameplay experien
 These HTML versions are served by GitHub Pages, GitHub's built-in static web hosting for this repository:
 
 - [Gauntlet: Best Of](https://jmrothberg.github.io/Gauntlet/Gauntlet_bestof.html) - recommended browser/iPad/iPhone version with mobile controls, cleaned-up sprites, slime splitting, and best-of gameplay updates.
-- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html) - older self-contained Oct 29 build with richer embedded bitmap sprites and desktop-style flow.
-- [Gauntlet Lynx Edition](https://jmrothberg.github.io/Gauntlet/Gauntlet_Lynx_Edition.html) - alternate Lynx-style web build kept for comparison and experimentation.
+- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html) - newer of the two older HTML builds, with richer embedded bitmap sprites plus mobile/touch updates. It supersedes `Gauntlet_Lynx_Edition.html`.
 
 ## Features
 
