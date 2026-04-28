@@ -1,195 +1,71 @@
-# Gauntlet: The Third Encounter
+# JMR's Gauntlet
 
-A faithful recreation of the classic **Atari Lynx** game *Gauntlet: The Third Encounter* with both desktop (Python/Pygame) and web (HTML5 Canvas) versions.
+A browser-playable tribute to *Gauntlet: The Third Encounter* — top-down dungeon-crawl with eight character classes, procedural levels, and touch controls for mobile.
 
-![Python](https://img.shields.io/badge/Python-3.6+-blue.svg)
-![HTML5](https://img.shields.io/badge/HTML5-Canvas-orange.svg)
-![License](https://img.shields.io/badge/License-MIT-green.svg)
+## Play online
 
-## Overview
+Hosted on GitHub Pages from the `main` branch:
 
-This project recreates the legendary dungeon-crawling action of Gauntlet with:
-- **8 Playable Character Classes** with unique stats
-- **11 Enemy Types** with distinct behaviors
-- **6 Progressive Levels** with procedural maze generation
-- **Full Combat System** with melee and ranged attacks
-- **Items & Power-ups** including keys, food, potions, and scrolls
-- **Shop System** for purchasing upgrades
-- **Save/Load System** for game persistence
+- **[Gauntlet: Best Of](https://jmrothberg.github.io/Gauntlet/Gauntlet_bestof.html)** — recommended for desktop, iPad, and iPhone. Procedural pixel-art dungeons, Star Gem quest, mobile touch controls.
+- **[Gauntlet (single-file)](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html)** — same world with richer illustrative sprites and the full eight-class roster.
 
-## Quick Start
+Either file also opens directly in any modern browser. No install required.
 
-### Play Online With GitHub Pages
+## What's in it
 
-This repo uses GitHub Pages, GitHub's built-in static web hosting, to serve the HTML game files directly from the `main` branch.
-
-- [Gauntlet: Best Of](https://jmrothberg.github.io/Gauntlet/Gauntlet_bestof.html) - recommended version for browser, iPad, and iPhone. It combines the strongest mobile controls with cleaned-up bitmap sprites and current gameplay improvements.
-- [Gauntlet Oct 29 Single File](https://jmrothberg.github.io/Gauntlet/Gauntlet_1FILE_Oct_29_25.html) - newer of the two older HTML builds, with richer Oct 29 bitmap art plus mobile/touch updates.
-
-You can also open any of those `.html` files locally in a modern browser. No installation is required for the web versions.
-
-### Desktop Version (Python)
-```bash
-# Install dependencies
-pip install -r Gauntlet_requirements.txt
-
-# Run the game
-python Gauntlet_Oct_27_25.py
-```
-
-## Screenshots
-
-Screenshots and reference images are available in the `Atari Gaunlet screen examples/` folder.
-
-## Project Structure
-
-```
-Gauntlet/
-├── README.md                       # This file - project overview
-├── gauntlet_readme.md              # Detailed gameplay documentation
-├── Gauntlet_requirements.txt       # Python dependencies
-│
-├── GAME FILES
-│   ├── Gauntlet_Oct_27_25.py       # Main Python/Pygame game (desktop)
-│   ├── Gauntlet_bestof.html        # Recommended browser/iPad/iPhone version
-│   └── Gauntlet_1FILE_Oct_29_25.html   # Newer Oct 29 standalone HTML5 game
-│
-├── BUILD SYSTEM
-│   ├── build_game.py               # Builds HTML game with generated assets
-│   ├── build_real_game.py          # Builds HTML game with real Lynx assets
-│   ├── game_logic_lynx.js          # JavaScript game logic (Lynx style)
-│   └── real_logic.js               # JavaScript logic for real assets
-│
-├── ASSET GENERATION
-│   ├── generate_lynx_assets.py     # Generates Lynx-style sprites
-│   ├── extract_real_assets.py      # Extracts assets from screenshots
-│   └── convert_sprites_gui.py      # GUI tool for sprite conversion
-│
-├── SPRITE ASSETS
-│   ├── Gauntlet_sprites/           # Game sprite images
-│   ├── converted_sprites/          # Processed sprite files
-│   └── Atari Gaunlet screen examples/  # Reference screenshots
-│
-├── DOCUMENTATION
-│   └── EMBEDDED_SPRITES_README.md  # Sprite converter documentation
-│
-└── SAVE DATA
-    └── gauntlet_save.json          # Game save file
-```
-
-## File Descriptions
-
-### Main Game Files
-
-| File | Description |
-|------|-------------|
-| `Gauntlet_Oct_27_25.py` | Full-featured desktop game using Python/Pygame with procedural sound, save system, and complete gameplay |
-| `Gauntlet_bestof.html` | Recommended web version for browser/iPad/iPhone with mobile controls, cleaned-up sprites, and best-of gameplay updates |
-| `Gauntlet_1FILE_Oct_29_25.html` | Self-contained Oct 29 HTML5 game with embedded bitmap art and mobile/touch updates; this supersedes `Gauntlet_Lynx_Edition.html` |
-
-### Build Tools
-
-| File | Description |
-|------|-------------|
-| `build_game.py` | Combines generated assets + game logic into standalone HTML |
-| `build_real_game.py` | Combines extracted real assets + game logic into standalone HTML |
-| `game_logic_lynx.js` | Core JavaScript game engine with Lynx-style gameplay |
-| `real_logic.js` | JavaScript game logic optimized for real Lynx assets |
-
-### Asset Tools
-
-| File | Description |
-|------|-------------|
-| `generate_lynx_assets.py` | Programmatically creates Lynx-style sprites using PIL |
-| `extract_real_assets.py` | Extracts and encodes assets from Lynx screenshots |
-| `convert_sprites_gui.py` | GUI application for converting images to game sprites |
+- **8 character classes** — Wizard, Valkyrie, Gunfighter, Android, Pirate, Punkrocker, Samurai, Nerd. Each has an idle pose and an attack pose that plays while firing or swinging.
+- **Procedurally generated rooms, doors, and corridors** with wall-sliding collision and a camera that follows the player.
+- **Combat** — melee when adjacent to an enemy, ranged projectiles otherwise. Hit-flash on damage.
+- **Items** — apples and turkeys (heal), gold, keys, potions (speed, strength, missile boost), scrolls (blast, shield, revive, far-see, invisibility), and amulets.
+- **Enemies** — slimes, spiders, scorpions, skeletons, ghosts, demons, ogres, gargoyles, orcs, beholders, sorcerers, and a stable of bosses available in `Graphics/sprites/unused/` for future levels (dragon, lich, succubus, dark knight, ice/lava elementals, …).
+- **Mobile-first** — swipe to steer, on-screen MELEE/SHOOT/INV/START buttons.
 
 ## Controls
 
-| Key | Action |
-|-----|--------|
-| WASD / Arrow Keys | Move character |
-| SPACE | Melee attack (near enemy) or shoot projectile |
-| TAB / I | Open/close inventory |
-| P | Pause game |
-| S | Save game |
-| C | Switch character class |
-| H | Help screen |
-| ESC | Close menus / Quit |
+| Input | Action |
+|---|---|
+| Arrow keys / WASD | Move |
+| Space | Melee (when adjacent) or shoot |
+| Tab or I | Open / close inventory |
+| P | Pause |
+| Touch swipe | Move |
+| On-screen buttons | Melee, shoot, inventory, start |
 
-## Character Classes
+## Repo layout
 
-| Class | HP | Speed | Strength | Magic |
-|-------|---:|------:|---------:|------:|
-| Android | 100 | 4 | 3 | 1 |
-| Valkyrie | 100 | 4 | 4 | 3 |
-| Gunfighter | 80 | 5 | 4 | 2 |
-| Nerd | 60 | 3 | 2 | 5 |
-| Pirate | 120 | 3 | 5 | 1 |
-| Punkrocker | 90 | 4 | 4 | 2 |
-| Samurai | 110 | 4 | 5 | 1 |
-| Wizard | 70 | 3 | 2 | 6 |
-
-## Dependencies
-
-### Python/Desktop Version
 ```
-pygame
-numpy
+Gauntlet/
+├── Gauntlet_bestof.html             # procedural pixel-art build
+├── Gauntlet_1FILE_Oct_29_25.html    # illustrative-sprite build
+├── index.html                       # GitHub Pages entry
+├── Gauntlet.png                     # social-card preview image
+├── Graphics/
+│   ├── *.png                        # 5 source sprite sheets (1254×1254 each)
+│   └── sprites/
+│       ├── *.png                    # 40 sprites used by both games
+│       └── unused/*.png             # 40 spare sprites available for future use
+├── tools/
+│   ├── slice_sheets.py              # cuts sheets into named transparent PNGs
+│   ├── wire_1file_sprites.py        # idempotent migration for the single-file build
+│   └── wire_bestof_sprites.py       # idempotent migration for the best-of build
+└── Atari Gaunlet screen examples/   # reference screenshots
 ```
 
-Install with: `pip install -r Gauntlet_requirements.txt`
+## Updating sprites
 
-### Web Version
-No dependencies - runs in any modern browser with JavaScript enabled.
+Both games load `./Graphics/sprites/<name>.png` at runtime, so swapping or adding a sprite file is enough — no rebuild required.
 
-### Asset Tools
-```
-Pillow (PIL)
-tkinter (usually included with Python)
-```
+To re-slice the source sheets after editing them:
 
-## Building from Source
-
-### Build HTML Game with Generated Assets
 ```bash
-# 1. Generate sprite assets
-python generate_lynx_assets.py
-
-# 2. Build the HTML game
-python build_game.py
-# Output: Gauntlet_Lynx_Reforged.html
+python3 -m pip install pillow numpy scipy
+python3 tools/slice_sheets.py
 ```
 
-### Build HTML Game with Real Lynx Assets
-```bash
-# 1. Extract assets from screenshots
-python extract_real_assets.py
-
-# 2. Build the HTML game
-python build_real_game.py
-# Output: Gauntlet_Lynx_Real.html
-```
-
-## Detailed Documentation
-
-For comprehensive gameplay documentation including:
-- All item descriptions and effects
-- Enemy types and behaviors
-- Level progression details
-- Hazard mechanics
-- Tips and strategies
-
-See [gauntlet_readme.md](gauntlet_readme.md)
+The slicer writes 80 named PNGs with transparent backgrounds into `Graphics/sprites/`. Any sprites that the games don't currently reference belong in `Graphics/sprites/unused/`.
 
 ## Credits
 
-Created by **Jonathan M. Rothberg (JMR)** - A tribute to the classic Atari Lynx game *Gauntlet: The Third Encounter*.
+Created by **Jonathan M. Rothberg (JMR)** — a tribute to *Gauntlet: The Third Encounter*.
 
-## License
-
-This is an unofficial fan recreation for educational purposes. All rights to the original Gauntlet game belong to their respective owners.
-
----
-
-*"Blue Warrior needs food badly!"*
+Unofficial fan recreation. All rights to the original Gauntlet game belong to their respective owners.
