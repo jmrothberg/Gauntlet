@@ -47,6 +47,9 @@ Thumbs.db
 *.temp
 *.bak
 
+# Claude Code local settings (machine-specific)
+.claude/
+
 # Generated files (optional - uncomment if you don't want to track these)
 # gauntlet_assets.js
 # extracted_assets.js
