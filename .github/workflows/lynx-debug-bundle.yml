@@ -1,0 +1,20 @@
+name: Lynx debug bundle
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/lynx-debug-bundle.yml']
+permissions:
+  contents: read
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lynx-debug-runtime
+          path: |
+            JMR-original/
+            tools/verify_original.cjs
+          retention-days: 2
