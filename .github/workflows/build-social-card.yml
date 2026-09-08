@@ -1,0 +1,71 @@
+name: Build JMR Original social card
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-social-card.yml'
+permissions:
+  contents: write
+jobs:
+  card:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install renderer
+        run: |
+          npm install --no-save playwright@1.55.0 sharp@0.34.3
+          npx playwright install --with-deps chromium
+      - name: Capture original game and build 1200x630 card
+        run: |
+          python3 -m http.server 8080 >/tmp/jmr-social-server.log 2>&1 &
+          cat > /tmp/social-card.cjs <<'JS'
+          const { chromium } = require('playwright');
+          const sharp = require('sharp');
+          const fs = require('fs');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1180,height:820}});
+            await page.goto('http://127.0.0.1:8080/JMR-original/',{waitUntil:'domcontentloaded',timeout:60000});
+            await page.getByText('PLAY GAUNTLET',{exact:true}).click({timeout:60000});
+            await page.waitForFunction(()=>document.body.classList.contains('started'),{}, {timeout:45000});
+            await page.waitForTimeout(5000);
+            for(let i=0;i<4;i++){await page.locator('#button-a').click({delay:180});await page.waitForTimeout(1400);}
+            const d=await page.locator('#dpad').boundingBox();
+            await page.mouse.move(d.x+d.width/2,d.y+15);await page.mouse.down();await page.waitForTimeout(1400);await page.mouse.up();
+            await page.locator('#button-b').click({delay:180});await page.waitForTimeout(1200);
+            await page.locator('#button-a').click({delay:700});await page.waitForTimeout(1200);
+            const frame=await page.locator('canvas').first().screenshot();
+            await browser.close();
+            const game=await sharp(frame).resize({width:690,height:440,fit:'contain',background:'#05070b'}).png().toBuffer();
+            const overlay=`<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101827"/><stop offset="1" stop-color="#05070b"/></linearGradient></defs>
+              <rect width="1200" height="630" fill="url(#g)"/>
+              <rect x="34" y="34" width="1132" height="562" rx="28" fill="none" stroke="#39475f" stroke-width="3"/>
+              <text x="58" y="112" fill="#ffffff" font-family="Arial,Helvetica,sans-serif" font-size="52" font-weight="700">JMR's Original</text>
+              <text x="58" y="162" fill="#d9e3f0" font-family="Arial,Helvetica,sans-serif" font-size="28">Gauntlet: The Third Encounter</text>
+              <text x="58" y="214" fill="#ffcf6b" font-family="Arial,Helvetica,sans-serif" font-size="24" font-weight="700">THE ORIGINAL ATARI LYNX GAME — PLAY IN YOUR BROWSER</text>
+              <text x="58" y="548" fill="#9fb1c9" font-family="Arial,Helvetica,sans-serif" font-size="22">Original cartridge • Handy WebAssembly • iPad / iPhone / desktop</text>
+            </svg>`;
+            await sharp({create:{width:1200,height:630,channels:4,background:'#05070b'}})
+              .composite([{input:Buffer.from(overlay),left:0,top:0},{input:game,left:454,top:126}])
+              .png().toFile('JMR-original/social-card.png');
+            const m=await sharp('JMR-original/social-card.png').metadata();
+            if(m.width!==1200||m.height!==630)throw new Error('bad social card dimensions');
+            console.log('Created JMR-original/social-card.png from actual running cartridge frame');
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node /tmp/social-card.cjs
+      - name: Commit generated social card
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add JMR-original/social-card.png
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add social preview card from original Gauntlet gameplay'
+            git push origin HEAD:main
+          fi
