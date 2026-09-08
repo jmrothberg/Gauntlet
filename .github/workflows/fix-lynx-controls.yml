@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply verified portrait direction and controller maps
+      - name: Apply portrait direction, mobile controls and browser checks
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -22,12 +22,14 @@ jobs:
           if patch not in s:s=s.replace(marker,patch+marker,1)
           assert "handy_rot:'90'" in s or "handy_rot:'270'" in s
           s=s.replace("handy_rot:'90'","handy_rot:'270'")
+          s=s.replace('#game .ejs_virtualGamepad_container{display:none!important}', '#game .ejs_virtualGamepad_container,#game .ejs_virtualGamepad_parent{display:none!important}')
           p.write_text(s)
           p=Path('JMR-original/README.md');p.write_text(p.read_text().replace('option to `90`','option to `270`'))
           p=Path('tools/verify_original.cjs');s=p.read_text()
           target="await page.screenshot({path:`${out}/${name}-gameplay.png`});"
           insert="await page.locator('#button-a').click({delay:900});await page.waitForTimeout(1500);\n   result.audioDuringGameplay=await page.evaluate(()=>window.__audio);\n   "
           if 'audioDuringGameplay' not in s:s=s.replace(target,insert+target)
+          if 'CPU OS 18_0' not in s:s=s.replace('deviceScaleFactor:1}',"deviceScaleFactor:1,userAgent:name==='webkit'?'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1':undefined}")
           p.write_text(s)
           PY
       - name: Commit targeted correction
@@ -36,6 +38,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add JMR-original/index.html JMR-original/README.md tools/verify_original.cjs
           if ! git diff --cached --quiet; then
-            git commit -m 'Use correct 270-degree Lynx rotation; extend gameplay sound test'
+            git commit -m 'Set upright Lynx view and suppress duplicate controls on iPad'
             git push origin HEAD:main
           fi
