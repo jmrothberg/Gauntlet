@@ -26,7 +26,6 @@ jobs:
           cat > /tmp/social-card.cjs <<'JS'
           const { chromium } = require('playwright');
           const sharp = require('sharp');
-          const fs = require('fs');
           (async()=>{
             const browser=await chromium.launch({headless:true});
             const page=await browser.newPage({viewport:{width:1180,height:820}});
@@ -56,16 +55,30 @@ jobs:
               .png().toFile('JMR-original/social-card.png');
             const m=await sharp('JMR-original/social-card.png').metadata();
             if(m.width!==1200||m.height!==630)throw new Error('bad social card dimensions');
-            console.log('Created JMR-original/social-card.png from actual running cartridge frame');
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
           node /tmp/social-card.cjs
-      - name: Commit generated social card
+      - name: Wire social metadata and native sharing
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('JMR-original/index.html')
+          s=p.read_text()
+          desc='<meta name="description" content="Play the original Atari Lynx cartridge with Original, Easy, or Woke assist modes.">'
+          social='''<meta name="description" content="Play JMR’s original Atari Lynx Gauntlet: The Third Encounter directly in your browser.">\n<meta property="og:type" content="website">\n<meta property="og:title" content="JMR’s Original — Gauntlet: The Third Encounter">\n<meta property="og:description" content="The original Atari Lynx cartridge, running in your browser. Play on iPad, iPhone, or desktop.">\n<meta property="og:url" content="https://jmrothberg.github.io/Gauntlet/JMR-original/">\n<meta property="og:image" content="https://jmrothberg.github.io/Gauntlet/JMR-original/social-card.png">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="JMR’s Original Gauntlet: The Third Encounter gameplay">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="JMR’s Original — Gauntlet: The Third Encounter">\n<meta name="twitter:description" content="The original Atari Lynx cartridge, playable in your browser.">\n<meta name="twitter:image" content="https://jmrothberg.github.io/Gauntlet/JMR-original/social-card.png">'''
+          if 'property="og:title"' not in s:
+              s=s.replace(desc,social,1)
+          old="navigator.share?await navigator.share({title:\"JMR's Original — Gauntlet\",url}):await navigator.clipboard.writeText(url)"
+          new="navigator.share?await navigator.share({title:\"JMR's Original — Gauntlet: The Third Encounter\",text:'Play the original Atari Lynx Gauntlet directly in your browser.',url}):await navigator.clipboard.writeText(url)"
+          if old in s:s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Commit social preview and metadata
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add JMR-original/social-card.png
+          git add JMR-original/social-card.png JMR-original/index.html
           if ! git diff --cached --quiet; then
-            git commit -m 'Add social preview card from original Gauntlet gameplay'
+            git commit -m 'Add gameplay social preview and rich sharing metadata'
             git push origin HEAD:main
           fi
