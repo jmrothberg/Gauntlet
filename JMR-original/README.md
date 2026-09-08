@@ -12,7 +12,7 @@ The D-pad and **A**, **B**, **OPTION 1**, **OPTION 2**, **PAUSE** buttons remain
 
 Keyboard: arrows = D-pad; Z = A; X = B; Q/W = Option 1/2; Enter = Pause. Reloading starts the console again; it does not ask for a cartridge.
 
-Gauntlet uses the Lynx vertically. The launcher sets the Handy core's `handy_rot` option to `90`, rather than rotating just an HTML screenshot. The display area is fitted to the resulting 102:160 portrait aspect ratio in both device orientations.
+Gauntlet uses the Lynx vertically. The launcher sets the Handy core's `handy_rot` option to `270`, rather than rotating just an HTML screenshot. The display area is fitted to the resulting 102:160 portrait aspect ratio in both device orientations.
 
 ## Verified original cartridge
 

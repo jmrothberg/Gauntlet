@@ -38,6 +38,8 @@ const base=process.env.GAME_URL||'http://127.0.0.1:8080/JMR-original/';
    const r=await page.locator('#dpad').boundingBox();
    await page.mouse.move(r.x+r.width/2,r.y+15);await page.mouse.down();await page.waitForTimeout(1600);await page.mouse.up();
    await page.locator('#button-b').click({delay:180});await page.waitForTimeout(1500);
+   await page.locator('#button-a').click({delay:900});await page.waitForTimeout(1500);
+   result.audioDuringGameplay=await page.evaluate(()=>window.__audio);
    await page.screenshot({path:`${out}/${name}-gameplay.png`});
    const frame=await page.locator('canvas').first().screenshot();fs.writeFileSync(`${out}/${name}-frame.png`,frame);
    const png=PNG.sync.read(frame),colors=new Set();let lit=0,magenta=0;
