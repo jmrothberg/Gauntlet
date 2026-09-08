@@ -10,7 +10,7 @@ const base=process.env.GAME_URL||'http://127.0.0.1:8080/JMR-original/';
   const logs=[],urls=new Set(),result={browser:name,url:base};let browser,page;
   try{
    browser=await type.launch({headless:true});
-   const context=await browser.newContext({viewport:{width:820,height:1180},hasTouch:true,isMobile:true,deviceScaleFactor:1});
+   const context=await browser.newContext({viewport:{width:820,height:1180},hasTouch:true,isMobile:true,deviceScaleFactor:1,userAgent:name==='webkit'?'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1':undefined});
    page=await context.newPage();
    page.on('console',m=>{if(['error','warning'].includes(m.type()))logs.push(m.type()+': '+m.text());});
    page.on('pageerror',e=>logs.push('PAGE ERROR: '+e.stack));
