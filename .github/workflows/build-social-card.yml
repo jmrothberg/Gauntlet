@@ -23,7 +23,7 @@ jobs:
       - name: Capture original game and build 1200x630 card
         run: |
           python3 -m http.server 8080 >/tmp/jmr-social-server.log 2>&1 &
-          cat > /tmp/social-card.cjs <<'JS'
+          cat > social-card.cjs <<'JS'
           const { chromium } = require('playwright');
           const sharp = require('sharp');
           (async()=>{
@@ -33,11 +33,13 @@ jobs:
             await page.getByText('PLAY GAUNTLET',{exact:true}).click({timeout:60000});
             await page.waitForFunction(()=>document.body.classList.contains('started'),{}, {timeout:45000});
             await page.waitForTimeout(5000);
-            for(let i=0;i<4;i++){await page.locator('#button-a').click({delay:180});await page.waitForTimeout(1400);}
+            const actions=page.locator('.actions button');
+            const buttonB=actions.nth(0),buttonA=actions.nth(1);
+            for(let i=0;i<4;i++){await buttonA.click({delay:180});await page.waitForTimeout(1400);}
             const d=await page.locator('#dpad').boundingBox();
             await page.mouse.move(d.x+d.width/2,d.y+15);await page.mouse.down();await page.waitForTimeout(1400);await page.mouse.up();
-            await page.locator('#button-b').click({delay:180});await page.waitForTimeout(1200);
-            await page.locator('#button-a').click({delay:700});await page.waitForTimeout(1200);
+            await buttonB.click({delay:180});await page.waitForTimeout(1200);
+            await buttonA.click({delay:700});await page.waitForTimeout(1200);
             const frame=await page.locator('canvas').first().screenshot();
             await browser.close();
             const game=await sharp(frame).resize({width:690,height:440,fit:'contain',background:'#05070b'}).png().toBuffer();
@@ -57,7 +59,7 @@ jobs:
             if(m.width!==1200||m.height!==630)throw new Error('bad social card dimensions');
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
-          node /tmp/social-card.cjs
+          node ./social-card.cjs
       - name: Wire social metadata and native sharing
         run: |
           python3 - <<'PY'
@@ -66,8 +68,7 @@ jobs:
           s=p.read_text()
           desc='<meta name="description" content="Play the original Atari Lynx cartridge with Original, Easy, or Woke assist modes.">'
           social='''<meta name="description" content="Play JMR’s original Atari Lynx Gauntlet: The Third Encounter directly in your browser.">\n<meta property="og:type" content="website">\n<meta property="og:title" content="JMR’s Original — Gauntlet: The Third Encounter">\n<meta property="og:description" content="The original Atari Lynx cartridge, running in your browser. Play on iPad, iPhone, or desktop.">\n<meta property="og:url" content="https://jmrothberg.github.io/Gauntlet/JMR-original/">\n<meta property="og:image" content="https://jmrothberg.github.io/Gauntlet/JMR-original/social-card.png">\n<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n<meta property="og:image:alt" content="JMR’s Original Gauntlet: The Third Encounter gameplay">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="JMR’s Original — Gauntlet: The Third Encounter">\n<meta name="twitter:description" content="The original Atari Lynx cartridge, playable in your browser.">\n<meta name="twitter:image" content="https://jmrothberg.github.io/Gauntlet/JMR-original/social-card.png">'''
-          if 'property="og:title"' not in s:
-              s=s.replace(desc,social,1)
+          if 'property="og:title"' not in s:s=s.replace(desc,social,1)
           old="navigator.share?await navigator.share({title:\"JMR's Original — Gauntlet\",url}):await navigator.clipboard.writeText(url)"
           new="navigator.share?await navigator.share({title:\"JMR's Original — Gauntlet: The Third Encounter\",text:'Play the original Atari Lynx Gauntlet directly in your browser.',url}):await navigator.clipboard.writeText(url)"
           if old in s:s=s.replace(old,new,1)
