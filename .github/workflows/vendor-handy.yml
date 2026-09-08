@@ -1,0 +1,56 @@
+name: Vendor Handy runtime
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/vendor-handy.yml']
+permissions:
+  contents: write
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pinned runtime and retain source and licenses
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures, hashlib, json, pathlib, re, time, urllib.request
+          root=pathlib.Path('JMR-original/vendor/emulatorjs-4.2.3')
+          base='https://cdn.emulatorjs.org/4.2.3/data/'
+          files=['loader.js','emulator.min.js','emulator.min.css','version.json','compression/extract7z.js','compression/extractzip.js','cores/handy-wasm.data','cores/handy-legacy-wasm.data','cores/reports/handy.json']
+          sources={p:base+p for p in files}
+          sources.update({'LICENSE.txt':'https://raw.githubusercontent.com/EmulatorJS/EmulatorJS/v4.2.3/LICENSE','emulatorjs-source.zip':'https://codeload.github.com/EmulatorJS/EmulatorJS/zip/refs/tags/v4.2.3','handy-source.zip':'https://codeload.github.com/libretro/libretro-handy/zip/bc55d462f0b2d6b073ea93dc552ebd73cec60fd1'})
+          def download(item):
+            name,url=item
+            for attempt in range(3):
+              try:
+                with urllib.request.urlopen(url,timeout=60) as r: data=r.read()
+                assert len(data)>16, (name,len(data))
+                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
+                return name,{'source':url,'size':len(data),'upstream_sha256':hashlib.sha256(data).hexdigest()}
+              except Exception:
+                if attempt==2: raise
+                time.sleep(2)
+          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
+            manifest=dict(pool.map(download,sources.items()))
+          runtime=root/'emulator.min.js'
+          text=runtime.read_text()
+          text,count=re.subn(r'MediaRecorder\.isTypeSupported\(([^()]*)\)',r'(typeof MediaRecorder!=="undefined"&&MediaRecorder.isTypeSupported(\1))',text)
+          assert count>=1, 'Expected recording capability check not found'
+          runtime.write_text('/* JMR compatibility patch: optional MediaRecorder feature detection. Upstream EmulatorJS 4.2.3, GPL-3.0. See PATCHES.md. */\n'+text)
+          manifest['emulator.min.js']['patches']=['Guard absent MediaRecorder; no recording support is advertised when absent.']
+          for name,entry in manifest.items():entry['served_sha256']=hashlib.sha256((root/name).read_bytes()).hexdigest()
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          (root/'PATCHES.md').write_text('# Pinned browser runtime\n\nEmulatorJS 4.2.3 frontend and Handy WebAssembly core downloaded from the official versioned CDN. Runtime files are served locally, not fetched from a moving stable CDN. Original frontend source and GPL license are included. Handy source snapshot and its notices are included for reference; the CDN core report identifies the compiled build.\n\nThe only frontend modification wraps each `MediaRecorder.isTypeSupported(x)` call as `(typeof MediaRecorder!=="undefined" && MediaRecorder.isTypeSupported(x))`. This prevents an optional recording feature from aborting game startup in browsers without MediaRecorder. Recording controls are disabled by the launcher. The script in `.github/workflows/vendor-handy.yml` reproduces the download and patch. `manifest.json` records upstream and served SHA-256 values.\n')
+          print(json.dumps(manifest,indent=2))
+          PY
+      - name: Commit runtime files without changing other games
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add JMR-original/vendor/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Vendor pinned EmulatorJS 4.2.3 and Handy WASM with optional API guard'
+            git push origin HEAD:main
+          fi
