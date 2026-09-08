@@ -2,7 +2,7 @@
 
 The original Atari Lynx release of **Gauntlet: The Third Encounter**, running in a browser through EmulatorJS's WebAssembly build of the libretro **Handy** core.
 
-The page directly loads `Gauntlet-The-Third-Encounter.lnx`; there is no cartridge picker or reconstructed game code. The Handy core can use its internal HLE startup path, so this build does not distribute Atari's boot ROM.
+The page directly loads `Gauntlet-The-Third-Encounter.lnx`; there is no cartridge picker or reconstructed game code. The Handy core requires the authentic 512-byte `lynxboot.img` firmware (MD5 `fcd403db69f54290b51035d82f835e7b`) to boot commercial cartridges. That firmware is not currently present, so the deployed game is not yet complete.
 
 ## Cartridge verification
 
@@ -12,4 +12,3 @@ The page directly loads `Gauntlet-The-Third-Encounter.lnx`; there is no cartridg
 ## Controls
 
 The Lynx touch layout is supplied by EmulatorJS. Physical keyboards and compatible browser gamepads remain enabled. Keyboard defaults are arrow keys for the D-pad, `Z`/`X` for A/B, `F1`/`F2` for Option 1/2, and Enter for Pause.
-
