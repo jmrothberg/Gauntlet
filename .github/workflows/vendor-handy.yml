@@ -12,45 +12,50 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Download pinned runtime and retain source and licenses
+      - name: Download verified upstream release
+        run: |
+          curl -fL --retry 3 'https://github.com/EmulatorJS/EmulatorJS/releases/download/v4.2.3/4.2.3.7z' -o /tmp/emulatorjs.7z
+          echo '07d451bc06fa3ad04ab30d9b94eb63ac34ad0babee52d60357b002bde8f3850b  /tmp/emulatorjs.7z' | sha256sum -c -
+          7z x -y /tmp/emulatorjs.7z -o/tmp/emulatorjs-release > /tmp/extract.log
+      - name: Retain only the Lynx runtime and patch optional recording
         run: |
           python3 - <<'PY'
-          import concurrent.futures, hashlib, json, pathlib, re, time, urllib.request
+          import hashlib,json,pathlib,re,shutil
           root=pathlib.Path('JMR-original/vendor/emulatorjs-4.2.3')
-          base='https://cdn.emulatorjs.org/4.2.3/data/'
-          files=['loader.js','emulator.min.js','emulator.min.css','version.json','compression/extract7z.js','compression/extractzip.js','cores/handy-wasm.data','cores/handy-legacy-wasm.data','cores/reports/handy.json']
-          sources={p:base+p for p in files}
-          sources.update({'LICENSE.txt':'https://raw.githubusercontent.com/EmulatorJS/EmulatorJS/v4.2.3/LICENSE','emulatorjs-source.zip':'https://codeload.github.com/EmulatorJS/EmulatorJS/zip/refs/tags/v4.2.3','handy-source.zip':'https://codeload.github.com/libretro/libretro-handy/zip/bc55d462f0b2d6b073ea93dc552ebd73cec60fd1'})
-          def download(item):
-            name,url=item
-            for attempt in range(3):
-              try:
-                with urllib.request.urlopen(url,timeout=60) as r: data=r.read()
-                assert len(data)>16, (name,len(data))
-                path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(data)
-                return name,{'source':url,'size':len(data),'upstream_sha256':hashlib.sha256(data).hexdigest()}
-              except Exception:
-                if attempt==2: raise
-                time.sleep(2)
-          with concurrent.futures.ThreadPoolExecutor(max_workers=5) as pool:
-            manifest=dict(pool.map(download,sources.items()))
-          runtime=root/'emulator.min.js'
-          text=runtime.read_text()
-          text,count=re.subn(r'MediaRecorder\.isTypeSupported\(([^()]*)\)',r'(typeof MediaRecorder!=="undefined"&&MediaRecorder.isTypeSupported(\1))',text)
-          assert count>=1, 'Expected recording capability check not found'
-          runtime.write_text('/* JMR compatibility patch: optional MediaRecorder feature detection. Upstream EmulatorJS 4.2.3, GPL-3.0. See PATCHES.md. */\n'+text)
-          manifest['emulator.min.js']['patches']=['Guard absent MediaRecorder; no recording support is advertised when absent.']
-          for name,entry in manifest.items():entry['served_sha256']=hashlib.sha256((root/name).read_bytes()).hexdigest()
-          (root/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-          (root/'PATCHES.md').write_text('# Pinned browser runtime\n\nEmulatorJS 4.2.3 frontend and Handy WebAssembly core downloaded from the official versioned CDN. Runtime files are served locally, not fetched from a moving stable CDN. Original frontend source and GPL license are included. Handy source snapshot and its notices are included for reference; the CDN core report identifies the compiled build.\n\nThe only frontend modification wraps each `MediaRecorder.isTypeSupported(x)` call as `(typeof MediaRecorder!=="undefined" && MediaRecorder.isTypeSupported(x))`. This prevents an optional recording feature from aborting game startup in browsers without MediaRecorder. Recording controls are disabled by the launcher. The script in `.github/workflows/vendor-handy.yml` reproduces the download and patch. `manifest.json` records upstream and served SHA-256 values.\n')
-          print(json.dumps(manifest,indent=2))
+          release=pathlib.Path('/tmp/emulatorjs-release')
+          loaders=list(release.rglob('loader.js'))
+          assert loaders, 'No loader in release'
+          data=loaders[0].parent
+          manifest={}
+          for src in data.rglob('*'):
+            if not src.is_file():continue
+            rel=src.relative_to(data)
+            if rel.parts[0]=='cores' and 'handy' not in src.name:continue
+            if src.suffix in ['.zip','.7z']:continue
+            dst=root/rel;dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(src,dst)
+            manifest[str(rel)]={'upstream_sha256':hashlib.sha256(src.read_bytes()).hexdigest(),'bytes':src.stat().st_size}
+          assert (root/'cores/handy-wasm.data').stat().st_size>100000
+          for p in [root/'emulator.min.js',root/'src/emulator.js']:
+            if not p.exists():continue
+            txt=p.read_text()
+            txt,n=re.subn(r'MediaRecorder\.isTypeSupported\(([^()]*)\)',r'(typeof MediaRecorder!=="undefined"&&MediaRecorder.isTypeSupported(\1))',txt)
+            assert n>0, str(p)
+            p.write_text('/* JMR compatibility patch: guard optional MediaRecorder. See PATCHES.md. */\n'+txt)
+          for src in release.rglob('*'):
+            if src.is_file() and src.name.lower().startswith(('license','copying')) and 'node_modules' not in str(src):
+              dst=root/'licenses'/src.relative_to(release);dst.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(src,dst)
+          for rel,entry in manifest.items():entry['served_sha256']=hashlib.sha256((root/rel).read_bytes()).hexdigest()
+          (root/'manifest.json').write_text(json.dumps({'release':'https://github.com/EmulatorJS/EmulatorJS/releases/tag/v4.2.3','archive_sha256':'07d451bc06fa3ad04ab30d9b94eb63ac34ad0babee52d60357b002bde8f3850b','files':manifest},indent=2)+'\n')
+          (root/'PATCHES.md').write_text('# EmulatorJS 4.2.3 + Handy\n\nRuntime copied from the checksum-verified upstream 4.2.3 release. Only Handy core binaries are retained. Original source files and license notices from the release are included.\n\nJMR compatibility change: guard `MediaRecorder.isTypeSupported(x)` with `typeof MediaRecorder!=="undefined"`. An optional screen-recording API must not prevent starting a cartridge. Recording controls are disabled by the launcher. Both the minified runtime and unminified emulator source receive the same change. The workflow in `.github/workflows/vendor-handy.yml` reproduces the patch; `manifest.json` records upstream and served hashes.\n\nUpstream frontend source: https://github.com/EmulatorJS/EmulatorJS/tree/v4.2.3\nHandy source: https://github.com/libretro/libretro-handy\nCore build information: `cores/reports/handy.json`.\n')
+          print('Retained',len(manifest),'runtime/source files; total bytes',sum(p.stat().st_size for p in root.rglob('*') if p.is_file()))
+          print('Runtime files:',list(manifest))
           PY
-      - name: Commit runtime files without changing other games
+      - name: Commit runtime without changing other games
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add JMR-original/vendor/
           if ! git diff --cached --quiet; then
-            git commit -m 'Vendor pinned EmulatorJS 4.2.3 and Handy WASM with optional API guard'
+            git commit -m 'Self-host pinned Handy runtime; guard optional recording API'
             git push origin HEAD:main
           fi
