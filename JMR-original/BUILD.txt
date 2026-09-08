@@ -1,5 +1,5 @@
-JMR Original browser build: 2026-09-08-portrait-1
+JMR Original browser build: 2026-09-08-portrait-2
 Cartridge: 131136 bytes; SHA-256 21a83624a636fde4d6f6a01363ebd7644dd5c3da19013525aae11ff0aeb2eb60
 Emulator: self-hosted EmulatorJS 4.2.3 with Handy WebAssembly
-Configuration: portrait rotation 90; complete controller maps; visible Lynx controls
-Verification results: see Verify JMR Original workflow and screenshot artifact for this commit.
+Configuration: portrait rotation 270; complete controller maps; visible Lynx controls; no duplicate mobile overlay
+Verification: Chromium and WebKit (iPad user agent), local and published Pages, gameplay, layouts and audio-buffer checks. See workflow results for this commit.
