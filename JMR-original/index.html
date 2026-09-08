@@ -1,2 +1,60 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#000"><title>JMR's Original — Gauntlet: The Third Encounter</title><style>html,body,#game{margin:0;width:100%;height:100%;background:#000;overflow:hidden}body{min-height:100dvh}#game{height:100dvh}</style></head><body><div id="game"></div><script>window.EJS_player='#game';window.EJS_core='lynx';window.EJS_gameName="JMR's Original — Gauntlet: The Third Encounter";window.EJS_gameUrl='./Gauntlet-The-Third-Encounter.lnx';window.EJS_pathtodata='https://cdn.emulatorjs.org/stable/data/';window.EJS_startOnLoaded=true;window.EJS_color='#d82323';window.EJS_backgroundColor='#000';</script><script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#05070b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>JMR's Original — Gauntlet: The Third Encounter</title>
+  <style>
+    :root { color-scheme: dark; --safe-top: env(safe-area-inset-top); --safe-right: env(safe-area-inset-right); --safe-bottom: env(safe-area-inset-bottom); --safe-left: env(safe-area-inset-left); }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #05070b; color: #fff; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; touch-action: none; }
+    body { padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left); }
+    main { width: 100%; height: 100%; display: grid; grid-template-rows: auto 1fr; }
+    header { min-height: 42px; display: flex; align-items: center; justify-content: center; gap: .5rem; padding: .4rem .75rem; background: #0b1019; border-bottom: 1px solid #243044; text-align: center; }
+    h1 { margin: 0; font-size: clamp(.9rem, 2.8vw, 1.15rem); font-weight: 750; letter-spacing: .02em; }
+    #game-shell { min-height: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #172133 0, #05070b 70%); }
+    #game { width: 100%; height: 100%; max-width: 1200px; margin: auto; }
+    #status { position: fixed; z-index: 50; bottom: calc(.4rem + var(--safe-bottom)); left: 50%; transform: translateX(-50%); padding: .35rem .7rem; border-radius: 999px; background: rgba(0,0,0,.72); color: #dce7f8; font-size: .72rem; pointer-events: none; transition: opacity .4s; white-space: nowrap; }
+    body.started #status { opacity: 0; }
+    canvas { image-rendering: pixelated !important; }
+    @media (orientation: landscape) and (max-height: 520px) { header { position: fixed; z-index: 20; top: var(--safe-top); left: calc(50% - 9rem); width: 18rem; min-height: 32px; padding: .2rem .5rem; background: rgba(5,7,11,.72); border: 0; border-radius: 0 0 .6rem .6rem; pointer-events: none; } h1 { font-size: .75rem; } main { grid-template-rows: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header><h1>JMR's Original · Gauntlet: The Third Encounter</h1></header>
+    <section id="game-shell" aria-label="Atari Lynx emulator"><div id="game"></div></section>
+  </main>
+  <div id="status">Tap PLAY once · cartridge is already inserted</div>
+  <script>
+    window.EJS_player = '#game';
+    window.EJS_core = 'lynx';
+    window.EJS_gameUrl = './Gauntlet-The-Third-Encounter.lnx';
+    window.EJS_gameName = "Gauntlet: The Third Encounter — JMR's Original";
+    window.EJS_gameID = 19901101;
+    window.EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+    window.EJS_startOnLoaded = false;
+    window.EJS_startButtonName = 'PLAY GAUNTLET';
+    window.EJS_alignStartButton = 'center';
+    window.EJS_color = '#d7263d';
+    window.EJS_volume = 0.8;
+    window.EJS_controlScheme = 'lynx';
+    window.EJS_threads = false;
+    window.EJS_backgroundColor = '#05070b';
+    window.EJS_Buttons = {
+      playPause: { visible: true }, restart: { visible: true }, mute: { visible: true },
+      settings: { visible: false }, fullscreen: { visible: true }, saveState: { visible: false },
+      loadState: { visible: false }, screenRecord: { visible: false }, gamepad: { visible: true },
+      cheat: { visible: false }, volume: { visible: true }, saveSavFiles: { visible: false },
+      loadSavFiles: { visible: false }, quickSave: { visible: false }, quickLoad: { visible: false },
+      screenshot: { visible: false }, cacheManager: { visible: false }, exitEmulation: { visible: false }
+    };
+    window.EJS_onGameStart = function () { document.body.classList.add('started'); };
+    document.addEventListener('contextmenu', function (event) { event.preventDefault(); });
+  </script>
+  <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+</body>
+</html>
