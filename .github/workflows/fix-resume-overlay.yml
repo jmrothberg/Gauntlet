@@ -1,0 +1,58 @@
+name: Fix JMR Original resume overlay
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/fix-resume-overlay.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove generic EmulatorJS resume screen
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('JMR-original/index.html')
+          s=p.read_text()
+          marker="document.addEventListener('contextmenu',e=>e.preventDefault());"
+          patch=r'''
+function cleanResumeOverlay(){
+  const nodes=[...document.querySelectorAll('#game *')];
+  const msg=nodes.find(el=>el.children.length===0&&/Click to resume Emulator/i.test(el.textContent||''));
+  if(!msg)return false;
+  const clickTarget=msg.closest('button,[role="button"]')||msg.parentElement||msg;
+  try{clickTarget.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));}catch(e){}
+  setTimeout(()=>{
+    if(!document.contains(msg))return;
+    msg.textContent='PLAY GAUNTLET';
+    let root=msg.parentElement;
+    for(let i=0;i<3&&root;i++,root=root.parentElement){
+      [...root.querySelectorAll('*')].forEach(el=>{
+        if(el!==msg&&el.children.length===0&&(el.textContent||'').trim()==='undefined')el.style.display='none';
+      });
+    }
+  },180);
+  return true;
+}
+const resumeObserver=new MutationObserver(cleanResumeOverlay);
+resumeObserver.observe(document.getElementById('game'),{subtree:true,childList:true,characterData:true});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){setTimeout(cleanResumeOverlay,50);setTimeout(cleanResumeOverlay,250)}});
+window.addEventListener('pageshow',()=>{setTimeout(cleanResumeOverlay,50);setTimeout(cleanResumeOverlay,250)});
+'''
+          assert marker in s
+          if 'function cleanResumeOverlay()' not in s:
+              s=s.replace(marker,patch+marker,1)
+          p.write_text(s)
+          PY
+      - name: Commit targeted patch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add JMR-original/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Auto-resume Safari and remove generic EmulatorJS resume overlay'
+            git push origin HEAD:main
+          fi
