@@ -2,6 +2,7 @@ def exercise_multitouch(page,name,check,keys,reset_log,no_shots):
  r=page.locator('#gesture').bounding_box();x=r['x']+r['width']/2;y=r['y']+r['height']/2
  reset_log()
  if name=='chromium':
+  page.evaluate('''()=>{window.touchTrace=[];for(const t of ['pointerdown','pointermove','pointerup','pointercancel','lostpointercapture'])document.addEventListener(t,e=>touchTrace.push([t,e.pointerId,e.clientX,e.clientY,e.target.id]),true);}''')
   cdp=page.context.new_cdp_session(page)
   def send(kind,points):cdp.send('Input.dispatchTouchEvent',{'type':kind,'touchPoints':points})
   one={'x':x,'y':y,'id':1}
@@ -9,14 +10,15 @@ def exercise_multitouch(page,name,check,keys,reset_log,no_shots):
   two={'x':x-50,'y':y+35,'id':2}
   send('touchStart',[one]);send('touchMove',[move]);page.wait_for_timeout(50)
   check(keys()==[7],'native touchscreen swipe moves right')
-  send('touchStart',[move,two]);page.wait_for_timeout(40);send('touchEnd',[move]);page.wait_for_timeout(25)
-  check(keys()==[7,8],'second native touch fires while first steers')
+  send('touchStart',[move,two]);page.wait_for_timeout(40)
+  # CDP TouchEnd ends the entire sequence. Updating active points releases only finger 2.
+  send('touchMove',[move]);page.wait_for_timeout(25)
+  check(keys()==[7,8],'second native touch fires while first steers: '+str(page.evaluate('({keys:JMR.input.snapshot(),trace:touchTrace,events:coreEvents})')))
   page.wait_for_timeout(650);check(keys()==[7],'tap releases fire without dropping steering')
   reset_log();send('touchEnd',[]);page.wait_for_timeout(80);check(keys()==[],'native movement release stops');no_shots('native movement release does not fire')
   cdp.detach()
  else:
   check(True,'WebKit native pointer drags and native touchscreen taps tested in main suite')
- # Synthetic pointers allow deterministic cancellation and simultaneous-source edge cases in both engines.
  def pointer(event,pid,px,py,selector=None):
   page.evaluate('''([event,pid,x,y,selector])=>{
    const target=selector?document.querySelector(selector):document.elementFromPoint(x,y);
@@ -31,7 +33,6 @@ def exercise_multitouch(page,name,check,keys,reset_log,no_shots):
  pointer('pointerdown',82,x,y+30);pointer('pointermove',82,x+50,y+30)
  pointer('pointerup',82,x+50,y+30);check(keys()==[7],'releasing one direction owner preserves the other')
  pointer('pointerup',81,x+50,y);check(keys()==[],'both direction owners release cleanly');no_shots('two drags never fire')
- # A held physical button must not be released by an overlapping tap-fire timer.
  ar=page.locator('#buttonA').bounding_box();ax=ar['x']+ar['width']/2;ay=ar['y']+ar['height']/2
  pointer('pointerdown',83,ax,ay,'#buttonA');pointer('pointerdown',81,x,y);pointer('pointerup',81,x,y)
  page.wait_for_timeout(650);check(keys()==[8],'tap timer cannot release a separately held A')
