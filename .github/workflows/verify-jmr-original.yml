@@ -2,48 +2,72 @@ name: Verify JMR Original
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, 'fix/verified-touch-controls']
     paths:
       - 'JMR-original/**'
-      - 'tools/verify_original.cjs'
+      - 'tools/*touch*'
       - '.github/workflows/verify-jmr-original.yml'
 permissions:
-  contents: read
+  contents: write
 jobs:
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: '22'
-      - name: Verify exact cartridge
+          python-version: '3.12'
+      - name: Assemble and syntax-check complete launcher
         run: |
-          python3 - <<'PY'
+          python tools/install_touch_controls.py
+          for f in JMR-original/*-v2.js; do node --check "$f"; done
+          python - <<'PY'
           import hashlib,pathlib
-          rom=pathlib.Path('JMR-original/Gauntlet-The-Third-Encounter.lnx').read_bytes()
-          assert len(rom)==131136, len(rom)
+          p=pathlib.Path('JMR-original')
+          rom=(p/'Gauntlet-The-Third-Encounter.lnx').read_bytes()
+          assert len(rom)==131136
           assert hashlib.sha256(rom).hexdigest()=='21a83624a636fde4d6f6a01363ebd7644dd5c3da19013525aae11ff0aeb2eb60'
-          print('Original cartridge: length and SHA-256 verified')
+          assert (p/'index.html').read_text().rstrip().endswith('</html>')
           PY
-      - name: Install browser test tools
+      - name: Install real browser engines
         run: |
-          npm install --no-save playwright@1.55.0 pngjs@7.0.0
-          npx playwright install --with-deps chromium webkit > /tmp/browser-install.log 2>&1 || { tail -60 /tmp/browser-install.log; exit 1; }
-      - name: Run cartridge and test controls in both browser engines
+          pip install playwright==1.55.0 pillow==11.3.0
+          python -m playwright install --with-deps chromium webkit > /tmp/browser-install.log 2>&1 || { tail -60 /tmp/browser-install.log; exit 1; }
+      - name: Run actual cartridge and touch-control regression suite
         run: |
-          python3 -m http.server 8080 > /tmp/gauntlet-server.log 2>&1 &
-          node tools/verify_original.cjs
-      - name: Verify published share link in both engines
+          python -m http.server 8765 >/tmp/gauntlet-http.log 2>&1 &
+          python tools/test_touch_controls.py
+      - name: Commit shell only after browser tests pass
+        if: github.ref_name == 'fix/verified-touch-controls'
         run: |
-          mv browser-results local-results
-          GAME_URL='https://jmrothberg.github.io/Gauntlet/JMR-original/?verified=20260908' node tools/verify_original.cjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add JMR-original/index.html
+          if ! git diff --cached --quiet; then
+            git commit -m 'Install complete launcher after passing real browser control tests'
+            git push origin HEAD:fix/verified-touch-controls
+          fi
+      - name: Verify deployed game
+        if: github.ref_name == 'main'
+        run: |
+          python - <<'PY'
+          import time,urllib.request
+          url='https://jmrothberg.github.io/Gauntlet/JMR-original/?verify=controls-v2'
+          for n in range(36):
+            try:
+              if 'input-v2.js' in urllib.request.urlopen(url,timeout=20).read().decode():break
+            except Exception:pass
+            time.sleep(5)
+          else:raise SystemExit('New launcher not yet deployed')
+          PY
+          GAME_URL='https://jmrothberg.github.io/Gauntlet/JMR-original/?verify=controls-v2' RESULT_DIR=published-results python tools/test_touch_controls.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: original-browser-results
+          name: verified-touch-results
           path: |
-            browser-results/
-            local-results/
-          retention-days: 7
+            control-results/
+            published-results/
+            JMR-original/index.html
+          retention-days: 14
