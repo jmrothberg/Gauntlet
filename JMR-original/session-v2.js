@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const J=window.JMR, byId=id=>document.getElementById(id), menu=byId('menu'), help=byId('helpDlg');
-  J.state='loading'; J.sound=true;
+  J.state='loading'; J.sound=true; J.videoReady=false; J.playbackVersion='startup-3';
   J.message=text=>{byId('status').textContent=text;byId('loadMessage').textContent=text;};
   function fit(){const r=byId('screenWrap'),w=Math.max(1,Math.min(r.clientWidth-10,(r.clientHeight-10)*102/160));byId('screenSurface').style.width=w+'px';byId('screenSurface').style.height=w*160/102+'px';}
   new ResizeObserver(fit).observe(byId('screenWrap'));window.addEventListener('resize',fit);fit();
@@ -17,19 +17,55 @@
   J.audioContexts=()=>{
     const M=window.EJS_emulator&&window.EJS_emulator.Module, contexts=new Set();
     const al=M&&M.AL&&M.AL.currentCtx;
-    if(al){if(al.ctx)contexts.add(al.ctx);if(al.sources)Object.values(al.sources).forEach(s=>{if(s&&s.gain)contexts.add(s.gain.context);});}
+    if(al){if(al.audioCtx)contexts.add(al.audioCtx);if(al.ctx)contexts.add(al.ctx);if(al.sources)Object.values(al.sources).forEach(s=>{if(s&&s.gain)contexts.add(s.gain.context);});}
     if(M&&M.SDL2&&M.SDL2.audioContext)contexts.add(M.SDL2.audioContext);
     return [...contexts].filter(c=>c&&typeof c.resume==='function');
   };
-  J.unlockAudio=()=>{J.audioContexts().forEach(c=>{if(c.state==='suspended')c.resume().catch(()=>{});});};
+  // Unlock sound inside user gestures; a pending audio promise must never stop video.
+  J.unlockAudio=()=>{J.audioContexts().forEach(c=>{
+    if(c.state==='running'||c.state==='closed')return;
+    try{const task=c.resume();if(task&&task.catch)task.catch(()=>{});}catch(_){}
+  });};
+  J.frames=()=>{const gm=J.gm();return gm&&gm.functions ? gm.functions.getFrameNum() : 0;};
+  let videoWait=0;
+  function waitForVideo(){
+    clearTimeout(videoWait);
+    const first=J.frames(),began=performance.now();let repaired=false;
+    function check(){
+      if(!J.started||J.state==='error'||J.state==='paused')return;
+      const e=window.EJS_emulator,c=e.canvas,frames=J.frames();
+      if(frames>first+2&&c&&c.width>0&&c.height>0&&byId('game').contains(c)){
+        J.videoReady=true;J.state='running';byId('start').hidden=true;
+        byId('continueLayer').hidden=true;byId('continueButton').disabled=false;
+        document.body.classList.add('started');byId('screenSurface').classList.add('running');
+        byId('menuBtn').disabled=false;byId('shareBtn').disabled=false;
+        fit();e.handleResize();J.setActive(true);
+        J.message('Tap A to advance the title screens. Choose with arrows, then A.');return;
+      }
+      if(!document.hidden&&performance.now()-began>1500&&!repaired){
+        // Recover a stopped loop without reloading the cartridge or resetting the game.
+        repaired=true;J.gm().toggleMainLoop(1);e.paused=false;
+      }
+      if(!document.hidden&&performance.now()-began>12000){
+        J.state='stalled';J.setActive(false);
+        J.message('The game display has not started. Tap CONTINUE GAME to retry.');
+        if(J.videoReady){byId('continueLayer').hidden=false;byId('continueButton').disabled=false;}
+        else{byId('play').textContent='CONTINUE GAME';byId('play').disabled=false;}
+        return;
+      }
+      videoWait=setTimeout(check,50);
+    }
+    videoWait=setTimeout(check,50);
+  }
   J.pause=reason=>{
-    if(!J.started)return;J.setActive(false);window.EJS_emulator.pause();J.state='paused';
-    if(reason!=='menu'&&!menu.open&&!help.open)byId('continueLayer').hidden=false;
+    if(!J.started||J.state==='error')return;clearTimeout(videoWait);J.setActive(false);window.EJS_emulator.pause();J.state='paused';
+    if(J.videoReady&&reason!=='menu'&&!menu.open&&!help.open)byId('continueLayer').hidden=false;
     J.message('Paused · your game is preserved');
   };
   J.resume=()=>{
     if(!J.started||document.hidden)return;
-    J.unlockAudio();byId('continueLayer').hidden=true;window.EJS_emulator.play();J.state='running';J.setActive(true);J.message('Drag to move · tap or A to fire · B toggles items');
+    J.unlockAudio();window.EJS_emulator.play();J.state='resuming';
+    byId('continueButton').disabled=true;J.message('Resuming the same game…');waitForVideo();
   };
   J.openMenu=()=>{if(!J.started)return;J.pause('menu');byId('restartConfirm').hidden=true;menu.showModal();};
   byId('menuBtn').onclick=J.openMenu;
@@ -46,12 +82,14 @@
   byId('sound').onclick=()=>{J.sound=!J.sound;window.EJS_emulator.setVolume(J.sound ? 0.8 : 0);byId('sound').textContent='Sound: '+(J.sound?'On':'Off');};
   byId('full').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else J.message('Use Safari’s Hide Toolbar for more screen space.');}catch(_){J.message('Full screen is unavailable in this browser.');}};
   byId('shareBtn').onclick=async()=>{J.pause('share');const url='https://jmrothberg.github.io/Gauntlet/JMR-original/';try{if(navigator.share)await navigator.share({title:"JMR's Original — Gauntlet",url});else{await navigator.clipboard.writeText(url);J.message('Play link copied');}}catch(_){};};
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)J.pause('background');});
-  window.addEventListener('blur',()=>{if(J.active)J.pause('background');});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)J.pause('background');else if(J.started&&!J.videoReady&&J.state==='paused')J.resume();});
+  // Browser chrome and focus changes are not evidence that the page is hidden.
+  window.addEventListener('blur',()=>{if(J.active){J.input.clear();if(J.clearPointers)J.clearPointers();}});
   window.addEventListener('pagehide',()=>J.pause('background'));
-  document.addEventListener('pointerdown',()=>{if(J.started)J.unlockAudio();},{capture:true});
-  document.addEventListener('keydown',()=>{if(J.started)J.unlockAudio();},{capture:true});
-  J.fail=text=>{J.message(text);byId('play').textContent='Unable to start';byId('play').disabled=true;J.state='error';};
+  // Touch activation can occur on release, not pointerdown, in mobile browsers.
+  for(const type of ['pointerdown','pointerup','touchend','click','keydown'])
+    document.addEventListener(type,()=>{if(J.started)J.unlockAudio();},{capture:true,passive:true});
+  J.fail=text=>{clearTimeout(videoWait);J.setActive(false);J.message(text);byId('play').textContent='Unable to start';byId('play').disabled=true;J.state='error';};
   J.ready=()=>{
     const emulator=window.EJS_emulator;
     emulator.checkStarted=()=>{};
@@ -71,6 +109,7 @@
     J.state='ready';byId('play').disabled=false;byId('play').textContent='PLAY';J.message('Ready · choose your mode, then PLAY');
   };
   byId('play').onclick=()=>{
+    if(J.started){if(J.state==='stalled'||J.state==='paused')J.resume();return;}
     if(J.state!=='ready')return;
     const native=byId('game').querySelector('.ejs_start_button');
     if(!native){J.fail('Start control unavailable. Reload this page.');return;}
@@ -79,12 +118,11 @@
     J.startTimeout=setTimeout(()=>{if(!J.started)J.fail('The game did not start. Check your connection and reload.');},45000);
   };
   J.onStart=()=>{
-    clearTimeout(J.startTimeout);if(J.started)return;J.started=true;J.state='running';
-    document.body.classList.add('started');byId('start').hidden=true;byId('screenSurface').classList.add('running');
-    byId('menuBtn').disabled=false;byId('shareBtn').disabled=false;fit();J.setActive(true);
-    J.message('Tap A to advance the title screens. Choose with arrows, then A.');
-    if(document.hidden)J.pause('background');
-    setTimeout(()=>{if(J.audioContexts().some(c=>c.state==='suspended')&&J.active)J.pause('audio');},250);
+    clearTimeout(J.startTimeout);if(J.started)return;J.started=true;J.state='starting-video';
+    // Start callback means the core loaded, not that a frame is visible yet.
+    // In particular, never pause gameplay just because audio is suspended.
+    fit();J.unlockAudio();J.message('Drawing the first game screen…');
+    if(document.hidden)J.pause('background');else waitForVideo();
   };
   J.drawInputs();
 })();
