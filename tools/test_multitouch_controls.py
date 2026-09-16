@@ -11,9 +11,11 @@ def exercise_multitouch(page,name,check,keys,reset_log,no_shots):
   send('touchStart',[one]);send('touchMove',[move]);page.wait_for_timeout(50)
   check(keys()==[7],'native touchscreen swipe moves right')
   send('touchStart',[move,two]);page.wait_for_timeout(40)
-  # CDP TouchEnd ends the entire sequence. Updating active points releases only finger 2.
-  send('touchMove',[move]);page.wait_for_timeout(25)
-  check(keys()==[7,8],'second native touch fires while first steers: '+str(page.evaluate('({keys:JMR.input.snapshot(),trace:touchTrace,events:coreEvents})')))
+  # Chromium input_handler.cc erases the supplied TouchEnd IDs, not the remaining IDs.
+  send('touchEnd',[two]);page.wait_for_timeout(25)
+  diagnostic=str(page.evaluate('({keys:JMR.input.snapshot(),trace:touchTrace,events:coreEvents})'))
+  assert keys()==[7,8], 'Native second-finger release: '+diagnostic
+  check(True,'second native touch fires while first steers')
   page.wait_for_timeout(650);check(keys()==[7],'tap releases fire without dropping steering')
   reset_log();send('touchEnd',[]);page.wait_for_timeout(80);check(keys()==[],'native movement release stops');no_shots('native movement release does not fire')
   cdp.detach()
