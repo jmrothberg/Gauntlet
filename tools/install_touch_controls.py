@@ -1,0 +1,52 @@
+"""Generate the control shell without rewriting the emulator or cartridge."""
+from pathlib import Path
+p = Path('JMR-original/index.html')
+html = '''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>JMR's Original — Gauntlet: The Third Encounter</title>
+<meta name="description" content="Play the original Atari Lynx Gauntlet with touchscreen controls.">
+<link rel="canonical" href="https://jmrothberg.github.io/Gauntlet/JMR-original/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="JMR's Original — Gauntlet: The Third Encounter">
+<meta property="og:description" content="The original Atari Lynx game. Play on iPad, iPhone or desktop.">
+<meta property="og:url" content="https://jmrothberg.github.io/Gauntlet/JMR-original/">
+<meta property="og:image" content="https://jmrothberg.github.io/Gauntlet/JMR-original/social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://jmrothberg.github.io/Gauntlet/JMR-original/social-card.png">
+<link rel="stylesheet" href="controls-v2.css?v=1">
+</head>
+<body>
+<main class="app">
+<header><h1>JMR's Original<small>Gauntlet: The Third Encounter · Atari Lynx</small></h1><div class="top"><button id="menuBtn" disabled>MENU</button><button id="shareBtn" disabled>SHARE</button></div></header>
+<section id="console" aria-label="Game and controls">
+<div id="screenWrap"><div id="screenSurface">
+<div id="game"></div>
+<!-- Sibling of the emulator mount: EmulatorJS cannot delete this control surface. -->
+<div id="gesture" aria-label="Drag to move; tap to fire"></div>
+<div id="continueLayer" hidden><p>Paused</p><button id="continueButton">CONTINUE GAME</button></div>
+</div></div>
+<div class="controls left"><div id="dpad" class="pad" role="group" aria-label="Directional pad"><span class="u" data-dir="4">▲</span><span class="l" data-dir="6">◀</span><span class="m"></span><span class="r" data-dir="7">▶</span><span class="d" data-dir="5">▼</span></div><button class="key option" data-key="10">OPTION 1</button></div>
+<div class="controls right"><div class="actions"><button id="buttonB" aria-label="Toggle inventory B" aria-pressed="false">B</button><button class="key" id="buttonA" data-key="8" aria-label="Fire A">A</button></div><p class="buttonLegend">B: ITEMS &nbsp; A: FIRE</p><div class="aux"><button class="key option" data-key="11">OPTION 2</button><button id="pauseBtn">PAUSE</button></div></div>
+</section>
+<footer><div id="inventoryStatus"></div><div id="status" role="status">Loading…</div></footer>
+</main>
+<div id="start"><div class="startCard"><h2>JMR'S ORIGINAL</h2><h3>GAUNTLET: THE THIRD ENCOUNTER</h3><p>Your original Atari Lynx game, ready to play.</p><div class="modes" id="startModes"><button data-mode="original">ORIGINAL</button><button data-mode="easy">EASY</button><button data-mode="woke">WOKE</button></div><p class="modeDescription"></p><button id="play" class="play" disabled>LOADING…</button><p id="loadMessage" role="status">Checking the cartridge…</p></div></div>
+<dialog id="menu"><h2>Game paused</h2><button id="resume" class="wide">RESUME GAME</button><h3>Tap-fire assistance</h3><div class="modes"><button data-mode="original">Original</button><button data-mode="easy">Easy</button><button data-mode="woke">Woke</button></div><p class="modeDescription"></p><p>These modes change the length of a deliberate tap-to-fire burst, not health or movement. No automatic firing.</p><div class="menuButtons"><button id="help">How to play</button><button id="sound">Sound: On</button><button id="full">Full screen</button><button id="restart">Restart game…</button></div><div id="restartConfirm" hidden><p>Restart from the beginning? Current progress will be lost.</p><button id="yesRestart">Yes, restart</button><button id="noRestart">Cancel</button></div></dialog>
+<dialog id="helpDlg"><h2>How to play</h2><p><b>Start:</b> tap A to advance the original title screens. Use directions to choose your character, then A.</p><p><b>Move:</b> drag and hold on the picture. Steer in eight directions; lift to stop. The D-pad and arrow keys also work. Movement never fires.</p><p><b>Fire:</b> tap the picture or press A. A second finger can tap while the first steers. A completed drag does not fire.</p><p><b>Items:</b> tap B to hold it; yellow B ✓ means inventory mode is on. Use directions for the original item actions. Tap B again to release it. Firing is never automatic while using inventory.</p><p><b>Pause:</b> MENU or PAUSE freezes the same session. Opening help or leaving the tab releases controls and B for safety. Resume does not restart.</p><p><b>Keyboard:</b> arrows move, Z or Space fires, X toggles B, Q/W are Options, Enter opens the pause menu.</p><button id="closeHelp">BACK TO MENU</button></dialog>
+<noscript>This game needs JavaScript enabled.</noscript>
+<script src="input-v2.js?v=1"></script>
+<script src="touch-v2.js?v=1"></script>
+<script src="session-v2.js?v=1"></script>
+<script src="boot-v2.js?v=1"></script>
+</body>
+</html>
+'''
+assert html.rstrip().endswith('</html>')
+assert '<script>' not in html
+p.write_text(html)
+print('Wrote complete external-script launcher:', len(html.encode()), 'bytes')
