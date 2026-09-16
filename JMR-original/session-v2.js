@@ -5,7 +5,7 @@
   J.message=text=>{byId('status').textContent=text;byId('loadMessage').textContent=text;};
   function fit(){const r=byId('screenWrap'),w=Math.max(1,Math.min(r.clientWidth-10,(r.clientHeight-10)*102/160));byId('screenSurface').style.width=w+'px';byId('screenSurface').style.height=w*160/102+'px';}
   new ResizeObserver(fit).observe(byId('screenWrap'));window.addEventListener('resize',fit);fit();
-  const descriptions={original:'Original · one shot per tap',easy:'Easy · short firing burst per tap',woke:'Woke · longer firing burst per tap'};
+  const descriptions={original:'Original · normal tap-to-fire',easy:'Easy · short firing burst per tap',woke:'Woke · longer firing burst per tap'};
   J.choose=value=>{
     J.mode=['original','easy','woke'].includes(value)?value:'original';
     try{localStorage.setItem('jmr-gauntlet-skill',J.mode);}catch(_){}
@@ -53,7 +53,21 @@
   document.addEventListener('keydown',()=>{if(J.started)J.unlockAudio();},{capture:true});
   J.fail=text=>{J.message(text);byId('play').textContent='Unable to start';byId('play').disabled=true;J.state='error';};
   J.ready=()=>{
-    window.EJS_emulator.checkStarted=()=>{};
+    const emulator=window.EJS_emulator;
+    emulator.checkStarted=()=>{};
+    const special=emulator.handleSpecialOptions;
+    emulator.handleSpecialOptions=function(option,value){
+      if(option==='menu-bar-button'&&!this.elements.menuToggle)return;
+      return special.call(this,option,value);
+    };
+    // Pinned Emscripten build does not catch asynchronous wake-lock rejection.
+    // Do not request a wake lock; it is unnecessary for input or emulation.
+    const proto=window.EJS_GameManager.prototype;
+    if(!proto.jmrConfigured){
+      const cfg=proto.getRetroArchCfg;
+      proto.getRetroArchCfg=function(){return cfg.call(this)+'\nsuspend_screensaver_enable = false\n';};
+      proto.jmrConfigured=true;
+    }
     J.state='ready';byId('play').disabled=false;byId('play').textContent='PLAY';J.message('Ready · choose your mode, then PLAY');
   };
   byId('play').onclick=()=>{
@@ -61,7 +75,7 @@
     const native=byId('game').querySelector('.ejs_start_button');
     if(!native){J.fail('Start control unavailable. Reload this page.');return;}
     J.state='starting';J.starts++;byId('play').disabled=true;byId('play').textContent='STARTING…';J.message('Starting Gauntlet…');
-    window.EJS_emulator.touch=true;native.click();
+    native.click();
     J.startTimeout=setTimeout(()=>{if(!J.started)J.fail('The game did not start. Check your connection and reload.');},45000);
   };
   J.onStart=()=>{
